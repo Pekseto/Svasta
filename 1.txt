@@ -1,0 +1,459 @@
+jednodim:njutn,secica,fibonaci,kubna,zlatni presek i parabola
+zaustavljanje njutn:En+1=|(Xn+1-Xn)/Xn+1|
+zaustavljanje secica:En+1=|(Xn+1-Xn)/Xn+1|
+zaustavljanje fibonaci:Izraèunati k ti interval i ponavljati postupak (korak 3.) sve do k=n.
+fib: |f(Xopt)-y(Xopt)|<=zmija
+
+metode pretrazivanja:fibonaci i zlatni presek
+	-skracuje se interval
+	-pretpostavka da je funkcija unifroman(ima jasno def min i max) moze da bude i prekidna
+	-nedostatak fibonacija je sto mora da se unapred odredi broj iteracija 
+gradijentne:njutn rapson i secica
+aproksimacija polinomom:parabola i kubni metod
+parabola(najbrza)-njutn-secica-zlatni presek-fibonaci
+
+
+
+--MOJEEEEEEEE
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+
+# Njutn - Rapsonov metod
+def newtonRaphson(x0, tol):
+    x_novo = x0
+    x_pre = math.inf
+    iteracije = 0
+
+    while (abs(x_pre - x_novo) > tol):
+        iteracije += 1
+        x_pre = x_novo
+        x_novo = x_pre - dfunc(x_pre)/ddfunc(x_pre)
+
+    xopt = x_novo
+    fopt = func(xopt)   
+    return xopt, fopt, iteracije
+
+def func(x):
+    f = -(x**4 - 5*x**3 - 2*x**2 + 24*x)
+    return f
+
+def dfunc(x):
+    f = -(4*x**3 - 15*x**2 - 4*x + 24)
+    return f
+
+def ddfunc(x):
+    f = -(12*x**2 - 30*x - 4)
+    return f
+
+###############################################
+# TESTIRANJE ALGORITMA
+tol = 0.0001
+init_guess = 1
+[xopt, fopt, iteracije] = newtonRaphson(init_guess, tol)
+print(xopt, fopt, iteracije)
+
+x = np.linspace(0, 4, 1000)
+f = np.linspace(0, 0, len(x))
+for i in range(0, len(x), 1):
+    f[i] = func(x[i])
+
+p = plt.plot(x, f, 'b--')
+p = plt.plot(xopt, fopt, 'or', label = 'max[f(x)]', markersize = 15, markeredgewidth = 3)
+plt.show()
+
+
+----SECICA
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+
+def sjecica(x1, x0, tol):
+    x_pre = x0
+    x_ppre = math.inf
+    x_novo = x1
+    iteracije = 0
+
+    while(abs(x_novo - x_pre) > tol):
+        iteracije += 1
+        x_ppre = x_pre
+        x_pre = x_novo
+        x_novo = x_pre - dfunc(x_pre)*(x_pre - x_ppre)/(dfunc(x_pre) - dfunc(x_ppre))
+
+    xopt = x_novo
+    fopt = func(xopt)
+    return xopt, fopt, iteracije     
+
+
+def func(x):
+    f = -(x**4 - 5*x**3 - 2*x**2 + 24*x)
+    return f
+
+def dfunc(x):
+    f = -(4*x**3 - 15*x**2 - 4*x + 24)
+    return f
+
+#############################################
+# TESTIRANJE
+tol = 0.0001
+init_guess1 = 0
+init_guess2 = 3
+
+[xopt, fopt, iteracije] = sjecica(init_guess1, init_guess2, tol)
+print(xopt, fopt, iteracije)
+
+x = np.linspace(0, 4, 1000)
+f = np.linspace(0, 0, len(x))
+for i in range(0, len(x), 1):
+    f[i] = func(x[i])
+
+p = plt.plot(x, f, 'b--')
+p = plt.plot(xopt, fopt, 'or', label = 'max[f(x)]', markersize = 15, markeredgewidth = 3)
+plt.show()
+
+
+
+
+--fib
+def fibonaci_metod(a,b,tol):
+    #Fibonacci - jev postupak minimizacije funckcije jedne promenljive.
+    # Funkcija mora biti unimodalna nad intervalom [a, b].
+    # Tol je trazena sirina intervala u kome se nalazi minimum.
+    ## Korak 1 - Trazimo najmanji broj n koji zadovoljava uslov
+    n = 1
+    while ((b-a)/tol) > fibonaci_broj(n):
+        n += 1
+
+    ## Korak 2 - Odredjujemo pocetne tacke
+
+    x1 = a + fibonaci_broj(n-2)/fibonaci_broj(n)*(b-a)
+    x2 = a + b - x1
+
+    ## Korak 3 - Iteracije
+    # Radimo n - 1 iteracija, posle cega je (b - a) < tol
+
+    for i in range(2, n+1):
+
+        if func(x1) <= func(x2):
+            b = x2
+            x2 = x1
+            x1 = a + b - x2
+        else:
+            a = x1
+            x1 = x2
+            x2 = a + b - x1
+
+
+
+    if func(x1) < func(x2):
+        xopt = x1
+        fopt = func(x1)
+    else:
+        xopt = x2
+        fopt = func(x2)
+
+--ad
+import numpy as np
+def adam(gradf,x0,gamma,omega1,omega2,epsilon,epsilon1,N):
+    x=[np.array(x0).reshape(len(x0),1)]
+    v=[np.ones(shape=x[-1].shape)]
+    m=[np.ones(shape=x[-1].shape)]
+    for k in range(N):
+        g=np.asarray(gradf(x[-1]))
+        m.append(m[-1]*omega1+(1-omega1)*g)
+        v.append(v[-1]*omega2+(1-omega2)*np.multiply(g,g))
+        hat_m=m[-1]/(1-omega1)
+        hat_v=np.abs(v[-1]/(1-omega2))
+        x.append(x[-1]-gamma*np.ones(shape=g.shape)/np.sqrt(hat_v+epsilon1)*hat_m)
+        if np.linalg.norm(g)<epsilon:
+            break
+    return x,v,m
+def steepest_descent(gradf, x0, gamma, epsilon, N):
+    x = np.array(x0).reshape(len(x0), 1)
+    for k in range(N):
+        g = gradf(x)
+        x = x - gamma*g
+        if np.linalg.norm(g) < epsilon:
+            break
+    return x
+def steepest_descent_with_momentum_v(gradf, x0, gamma, epsilon, omega, N):
+    x = [np.array(x0).reshape(len(x0), 1)]
+    v = np.zeros(shape=x[-1].shape)
+    for k in range(N):
+        g = gradf(x[-1])
+        v = omega*v + gamma*g
+        x.append(x[-1] - v)
+        # U ovom algoritmu smislenije je proveravati duzinu
+        # koraka (skoka) `v`, umesto samog gradijenta `g`.
+        if np.linalg.norm(g) < epsilon:
+            break
+    return x
+def gradijent(x):
+    x=np.array(x).reshape(np.size(x))
+    return np.asarray([[3*x[0] - 2*x[1] + 6*x[0]**2 + 2*x[0]**3], [2*x[1] - 2*x[0]]])
+
+x,v,m=adam(lambda x:gradijent(x),[3,0.1],0.091,0.9,0.99,1e-6,1e-6,100)
+print(x)
+#x1,v1,m1=adam_v(lambda x:gradijent(x),[1,2],0.9,0.9,0.9,0.9,0.9,100)
+#print(x1)
+
+
+
+
+
+
+--zl presek
+def zlatni_presek_metod(a, b, tol):
+    # Zlatni presek postupak minimizacije funckcije jedne promenljive.
+    # Tol je trazena sirina intervala u kome se nalazi minimum.
+    ## Korak 1 - Odredjujemo poèetnu taèku
+    # Odredjivanje konstante zlatnog preseka
+    c = (3-math.sqrt(5))/2
+    # Pocetne tacke
+    x1 = a + c*(b-a)
+    x2 = a + b-x1
+    n = 1
+    ## Korak 2 - Iterativno smanjujemo interval dok ne zadovoljimo zadatu preciznost
+    while (b-a) > tol:
+        n += 1
+        if func(x1) <= func(x2):
+            b = x2
+            x1 = a + c*(b-a)
+            x2 = a+b-x1
+        else:
+            a = x1
+            x1 = a + c * (b - a)
+            x2 = a + b - x1
+
+    if func(x1) < func(x2):
+        xopt = x1
+        fopt = func(x1)
+    else:
+        xopt = x2
+        fopt = func(x2)
+
+    return xopt, fopt, n
+
+def func(x):
+    f=-1*(x*4-5*x3-2*x*2+24*x)
+    return f
+
+a = 0
+
+--jeeeeeeee
+def fibonaci(a, b, tol):
+    n = 1
+    while((b-a)/tol) > fibonaci_broj(n):
+        n += 1
+        print(n, fibonaci_broj(n))
+    x1 = a + fibonaci_broj(n-2)/fibonaci_broj(n)*(b-a)
+    x2 = a + b - x1
+
+    if func(x1) < func(x2):
+        b = x2
+        x2 = x1
+        x1 = a + b - x2
+    else:
+        a = x1
+        x1 = x2
+        x2 = a + b - x1
+
+    if func(x1) < func(x2):
+        xopt = x1
+        fopt = func(x1)
+    else:
+        xopt = x2
+        fopt = func(x2)
+
+    return xopt, fopt, n
+
+def fibonaci_broj(n):
+    if n < 3:
+        f = 1
+    else:
+        fp = 1
+        fpp = 1
+        for i in range(3, n+1):
+            f = fp + fpp
+            fpp = fp
+            fp = f
+    return f      
+
+
+def zlatniPresek(a, b, tol):
+    c = (3 - math.sqrt(5))/2
+    x1 = a + c*(b-a)
+    x2 = a + b - x1
+    n = 1
+
+    while (b-a) > tol:
+        n += 1
+        if func(x1) <= func(x2):
+            b = x2
+            x1 = a + c*(b-a)
+            x2 = a + b - x1
+        else:
+            a = x1
+            x1 = a + c*(b-a)
+            x2 = a + b - x1
+   
+    if func(x1) < func(x2):
+        xopt = x1
+        fopt = func(x1)
+    else:    
+        xopt = x2
+        fopt = func(x2)
+
+    return xopt, fopt, n
+
+
+def newtonRaphson(x0, tol):
+    x_novo = x0
+    x_pre = math.inf
+    iter = 0
+
+    while abs(x_pre - x_novo) > tol:
+        iter += 1
+        x_pre = x_novo
+        x_novo = x_pre - dfunc(x_pre)/ddfunc(x_pre)
+
+    xopt = x_novo
+    fopt = func(x_novo)
+    return xopt, fopt, iter   
+
+
+def secica(x1, x0, tol):
+    x_pre = x0
+    x_ppre = math.inf
+    x_novo = x1
+    iter = 0
+
+    while abs(x_novo - x_pre) > tol:
+        iter += 1
+        x_ppre = x_pre
+        x_pre = x_novo
+        x_novo = x_pre - dfunc(x_pre)*(x_pre - x_ppre)/(dfunc(x_pre) - dfunc(x_ppre))
+
+    xopt = x_novo
+    fopt = func(x_novo)
+
+    return xopt, fopt, iter    
+
+
+def parabola(x1, x3, tol):
+    X = np.array([x1, (x1+x3)/2, x3]).transpose()
+    pom = np.array([1, 1, 1]).transpose()
+    Y = np.array([pom, X, X*X]).transpose()
+    F = np.linspace(0, 0, len(X))
+    for i in range(0, len(X), 1):
+        F[i] = func(X[i])
+    abc = lin.solve(Y, F)
+
+    x = -abc[1]/2/abc[2]
+    fx = func(x)
+    n = 0
+
+    while np.abs(np.dot([1, x, x**2], abc) - fx) > tol:
+        if (x > X[1]) and (x < X[2]):
+            if (fx < F[1]) and (fx < F[2]):
+                X = np.array([X[1], x, X[2]])
+                F = np.array([F[1], fx, F[2]])
+            elif (fx > F[1]) and (fx < F[2]):
+                X = np.array([X[0], X[1], x])
+                F = np.array([F[0], F[1], fx])
+            else:
+                print("Greska")
+
+        elif (x > X[0]) and (x < X[2]):
+            if (fx < F[0]) and (fx < F[1]):
+                X = np.array([X[0], x, X[2]])
+                F = np.array([F[0], fx, F[2]])
+            elif (fx > F[0]) and (fx < F[2]):
+                X = np.array([x, X[0], X[1]])
+                F = np.array([fx, F[0], F[1]])
+            else:
+                print("Greska")  
+        else:
+            print("x se nalazi van granica")                    
+       
+        pom = np.array([1, 1, 1]).transpose()
+        Y = np.array([pom, X, X*X]).transpose()
+        F = np.linspace(0, 0, len(X))
+        for i in range(0, len(X), 1):
+           F[i] = func(X[i])
+        abc = lin.solve(Y, F)
+
+        x = -abc[1]/2/abc[2]
+        fx = func(x)
+        n = n + 1
+    return x, fx, n
+
+
+def sd(gradf, x0, gamma, epsilon, N):
+    x = np.array(x0).reshape(len(x0), 1)
+    for k in range(N):
+        g = gradf(x)
+        x = x - gamma*g
+        if np.linalg.norm(g) < epsilon:
+            break
+    return x, k+1 
+
+
+def sdm(gradf, x0, gamma, epsilon, omega, N):
+    x = np.array(x0).reshape(len(x0), 1)
+    v = np.zeros(shape = x.shape)
+    for k in range(N):
+        g = gradf(x)
+        v = omega*v + gamma*g
+        x = x - v
+        if np.linalg.norm(g) < epsilon:
+            break
+    return x, k+1 
+
+
+def adam(gradf, x0, gamma, omega1, omega2, epsilon1, epsilon, N):
+    x = np.array(x0).reshape(len(x0), 1)
+    v = np.ones(shape = x.shape)
+    m = np.ones(shape = x.shape)
+    for k in range(N):
+        g = gradf(x)
+        m = omega1*m + (1-omega1)*g
+        v = omega2*v + (1-omega2)*np.multiply(g, g)
+        m_kor = m /(1-omega1)
+        v_kor = abs(v/(1-omega2))
+        x = x - gamma*m_kor/np.sqrt(v_kor + epsilon1)
+        if np.linalg.norm(g) < epsilon:
+            break
+    return x, k+1 
+
+
+def nesterov(gradf, x0, gamma, epsilon, omega, N):
+    x = np.array(x0).reshape(len(x0), 1)
+    v = np.zeros(shape = x.shape)
+    for k in range(N):
+        x_pre = x - omega*v
+        g = gradf(x_pre)
+        v = omega*v + gamma*g
+        x = x - v
+        if np.linalg.norm(g) < epsilon:
+            break
+    return x, k+1
+
+
+def adagrad(gradf, x0, gamma, epislon1, epsilon, N):
+    x = np.array(x0).reshape(len(x0),1)
+    v = np.zeros(shape = x.shape)
+    G = np.zeros(shape = x.shape)
+    for k in range(N):
+        g = np.asanyarray(gradf(x))
+        G = G + np.multiply(g, g)
+        v = gamma*np.ones(shape = G.shape)/np.sqrt(G + epislon1)*g
+        x = x - v
+        if np.linalg.norm(g) < epsilon:
+            break
+    return x, k+1 
